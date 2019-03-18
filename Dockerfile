@@ -8,9 +8,7 @@ ARG OPENSSL_VER=1.0.2o
 ARG OPENSSL_HASH=ec3f5c9714ba0fd45cb4e087301eb1336c317e0d20b575a125050470e8089e4d
 ARG OPENSSL_PGP_FINGERPRINT=D9C4D26D0E604491
 
-WORKDIR /tmp
-
-COPY test_fips.c .
+ADD test_fips.c openssl-fips-${OPENSSL_FIPS_VER}.tar.gz /tmp/build/
 
 RUN apk update \
     && apk add --update wget gcc gzip tar libc-dev ca-certificates perl make coreutils gnupg linux-headers zlib-dev openssl \
