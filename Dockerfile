@@ -42,13 +42,12 @@ RUN set -x; \
     -Wa,--noexecstack \
     fips shared zlib enable-ec_nistp_64_gcc_128 enable-ssl2 \
   && make \
-  && make INSTALL_PREFIX=./root install_sw \
+  && make INSTALL_PREFIX=/tmp/root install_sw \
   && cd .. \
-  && gcc test_fips.c -I./root/usr/include -L./root/usr/lib -lssl -lcrypto -otest_fips \
+  && gcc test_fips.c -I./root/usr/include -L/tmp/root/usr/lib -lssl -lcrypto -otest_fips \
   && chmod +x test_fips \
-  && LD_LIBRARY_PATH=./root/usr/lib ./test_fips \
-  && rm -rf ~/.gnupg \
-  && find . -mindepth 1 -delete \
+  && LD_LIBRARY_PATH=/tmp/root/usr/lib ./test_fips \
+  && find ~ . -mindepth 1 -delete \
   && apk del .build-deps
 
 FROM alpine:3.9
