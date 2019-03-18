@@ -6,7 +6,7 @@ ARG OPENSSL_PGP_FINGERPRINT=D9C4D26D0E604491
 
 ADD test_fips.c openssl-fips-${OPENSSL_FIPS_VER}.tar.gz /tmp/build/
 
-RUN set -x;
+RUN set -x; \
   cd /tmp/build \
   && apk add --no-cache zlib \
   && apk add --no-cache --virtual .build-deps \
