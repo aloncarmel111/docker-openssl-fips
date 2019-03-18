@@ -4,7 +4,7 @@ ARG OPENSSL_FIPS_VER=2.0.16
 ARG OPENSSL_VER=1.0.2o
 ARG OPENSSL_PGP_FINGERPRINT=D9C4D26D0E604491
 
-WORKDIR /tmp
+WORKDIR /tmp/build
 
 ADD openssl-fips-${OPENSSL_FIPS_VER}.tar.gz ./
 
@@ -43,8 +43,8 @@ RUN set -x; \
     fips shared zlib enable-ec_nistp_64_gcc_128 enable-ssl2 \
   && make \
   && make INSTALL_PREFIX=/tmp/root install_sw \
-  && cd .. \
-  && find ~ . -mindepth 1 -delete \
+  && cd \
+  && rm -rf /tmp/build /usr/local/ssl \
   && apk del .build-deps
 
 FROM alpine:3.9
