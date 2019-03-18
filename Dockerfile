@@ -1,4 +1,4 @@
-FROM alpine:3.6
+FROM alpine:3.9
 
 ARG OPENSSL_FIPS_VER=2.0.16
 ARG OPENSSL_FIPS_HMACSHA1=e8dbfa6cb9e22a049ec625ffb7ccaf33e6116598
@@ -8,11 +8,11 @@ ARG OPENSSL_VER=1.0.2o
 ARG OPENSSL_HASH=ec3f5c9714ba0fd45cb4e087301eb1336c317e0d20b575a125050470e8089e4d
 ARG OPENSSL_PGP_FINGERPRINT=D9C4D26D0E604491
 
-COPY test_fips.c /root/test_fips.c
+WORKDIR /tmp
+
+COPY test_fips.c .
 
 RUN apk update \
-    && cd /root \
-    && apk upgrade \
     && apk add --update wget gcc gzip tar libc-dev ca-certificates perl make coreutils gnupg linux-headers zlib-dev openssl \
     && wget --quiet https://www.openssl.org/source/openssl-fips-$OPENSSL_FIPS_VER.tar.gz \
     && openssl sha1 -hmac etaonrishdlcupfm openssl-fips-$OPENSSL_FIPS_VER.tar.gz | grep $OPENSSL_FIPS_HMACSHA1 \
@@ -42,9 +42,9 @@ RUN apk update \
                                      -Wa,--noexecstack enable-ssl2 \
     && make \
     && make install_sw \
-    && cd /root \
+    && cd .. \
     && gcc test_fips.c -lssl -lcrypto -otest_fips \
     && chmod +x test_fips \
     && ./test_fips \
-    && rm -rf /root/openssl* /root/patches /var/cache/apk/* /root/.gnupg/ ~/.ash_history /root/.wget-hsts /root/test_fips* \
+    && rm -rf openssl* patches /var/cache/apk/* .gnupg/ ~/.ash_history .wget-hsts test_fips* \
     && apk del wget gcc gzip tar libc-dev ca-certificates perl make coreutils gnupg linux-headers    
