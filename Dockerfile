@@ -28,7 +28,7 @@ RUN set -x;
       zlib-dev \
   && wget --quiet https://www.openssl.org/source/openssl-$OPENSSL_VER.tar.gz \
   && wget --quiet https://www.openssl.org/source/openssl-$OPENSSL_VER.tar.gz.asc \
-  && gpg --keyserver hkp://pgp.mit.edu --recv $OPENSSL_PGP_FINGERPRINT \
+  && gpg --recv $OPENSSL_PGP_FINGERPRINT \
   && gpg --verify openssl-$OPENSSL_VER.tar.gz.asc \
   && tar -xzf openssl-$OPENSSL_VER.tar.gz \
   && cd openssl-fips-$OPENSSL_FIPS_VER \
