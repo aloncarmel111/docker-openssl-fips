@@ -10,7 +10,8 @@ ARG OPENSSL_PGP_FINGERPRINT=D9C4D26D0E604491
 
 ADD test_fips.c openssl-fips-${OPENSSL_FIPS_VER}.tar.gz /tmp/build/
 
-RUN cd /tmp/build \
+RUN set -x;
+  cd /tmp/build \
   && apk add --no-cache zlib \
   && apk add --no-cache --virtual .build-deps \
       wget \
@@ -49,5 +50,5 @@ RUN cd /tmp/build \
   && gcc test_fips.c -lssl -lcrypto -otest_fips \
   && chmod +x test_fips \
   && ./test_fips \
-  && rm -rf /tmp/build \
+  && rm -rf /tmp/build ~/.gnupg \
   && apk del .build-deps
