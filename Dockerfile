@@ -4,11 +4,12 @@ ARG OPENSSL_FIPS_VER=2.0.16
 ARG OPENSSL_VER=1.0.2o
 ARG OPENSSL_PGP_FINGERPRINT=D9C4D26D0E604491
 
-ADD test_fips.c openssl-fips-${OPENSSL_FIPS_VER}.tar.gz /tmp/build/
+WORKDIR /tmp
+
+ADD test_fips.c openssl-fips-${OPENSSL_FIPS_VER}.tar.gz ./
 
 RUN set -x; \
-  cd /tmp/build \
-  && apk add --no-cache zlib \
+  apk add --no-cache zlib \
   && apk add --no-cache --virtual .build-deps \
       wget \
       gcc \
@@ -41,12 +42,13 @@ RUN set -x; \
     -Wa,--noexecstack \
     fips shared zlib enable-ec_nistp_64_gcc_128 enable-ssl2 \
   && make \
-  && make INSTALL_PREFIX=/tmp/root install_sw \
-  && cd ..
-  && gcc test_fips.c -I/tmp/root/usr/include -L/tmp/root/usr/lib -lssl -lcrypto -otest_fips \
+  && make INSTALL_PREFIX=./root install_sw \
+  && cd .. \
+  && gcc test_fips.c -I./root/usr/include -L./root/usr/lib -lssl -lcrypto -otest_fips \
   && chmod +x test_fips \
-  && rm -rf /tmp/build ~/.gnupg \
-  && LD_LIBRARY_PATH=/tmp/root/usr/lib ./test_fips \
+  && LD_LIBRARY_PATH=./root/usr/lib ./test_fips \
+  && rm -rf ~/.gnupg \
+  && find . -mindepth 1 -delete \
   && apk del .build-deps
 
 FROM alpine:3.9
