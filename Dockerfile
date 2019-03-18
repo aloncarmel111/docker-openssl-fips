@@ -11,11 +11,6 @@ ARG OPENSSL_PGP_FINGERPRINT=D9C4D26D0E604491
 ADD test_fips.c openssl-fips-${OPENSSL_FIPS_VER}.tar.gz /tmp/build/
 
 RUN cd /tmp/build \
-  && wget --quiet https://www.openssl.org/source/openssl-$OPENSSL_VER.tar.gz \
-  && wget --quiet https://www.openssl.org/source/openssl-$OPENSSL_VER.tar.gz.asc \
-  && gpg --keyserver hkp://pgp.mit.edu --recv $OPENSSL_PGP_FINGERPRINT \
-  && gpg --verify openssl-$OPENSSL_VER.tar.gz.asc \
-  && tar -xzf openssl-$OPENSSL_VER.tar.gz \
   && apk add --no-cache zlib \
   && apk add --no-cache --virtual .build-deps \
       wget \
@@ -30,6 +25,11 @@ RUN cd /tmp/build \
       gnupg \
       linux-headers \
       zlib-dev \
+  && wget --quiet https://www.openssl.org/source/openssl-$OPENSSL_VER.tar.gz \
+  && wget --quiet https://www.openssl.org/source/openssl-$OPENSSL_VER.tar.gz.asc \
+  && gpg --keyserver hkp://pgp.mit.edu --recv $OPENSSL_PGP_FINGERPRINT \
+  && gpg --verify openssl-$OPENSSL_VER.tar.gz.asc \
+  && tar -xzf openssl-$OPENSSL_VER.tar.gz \
   && cd openssl-fips-$OPENSSL_FIPS_VER \
   && ./config \
   && make \
