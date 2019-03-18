@@ -6,7 +6,7 @@ ARG OPENSSL_PGP_FINGERPRINT=D9C4D26D0E604491
 
 WORKDIR /tmp
 
-ADD test_fips.c openssl-fips-${OPENSSL_FIPS_VER}.tar.gz ./
+ADD openssl-fips-${OPENSSL_FIPS_VER}.tar.gz ./
 
 RUN set -x; \
   apk add --no-cache zlib \
@@ -44,9 +44,6 @@ RUN set -x; \
   && make \
   && make INSTALL_PREFIX=/tmp/root install_sw \
   && cd .. \
-  && gcc test_fips.c -I./root/usr/include -L/tmp/root/usr/lib -lssl -lcrypto -otest_fips \
-  && chmod +x test_fips \
-  && LD_LIBRARY_PATH=/tmp/root/usr/lib ./test_fips \
   && find ~ . -mindepth 1 -delete \
   && apk del .build-deps
 
