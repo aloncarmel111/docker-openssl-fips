@@ -1,4 +1,4 @@
-FROM alpine:3.9
+FROM alpine:3.9 AS build
 
 ARG OPENSSL_FIPS_VER=2.0.16
 ARG OPENSSL_VER=1.0.2o
@@ -41,10 +41,13 @@ RUN set -x; \
     -Wa,--noexecstack \
     fips shared zlib enable-ec_nistp_64_gcc_128 enable-ssl2 \
   && make \
-  && make install_sw \
-  && cd .. \
-  && gcc test_fips.c -lssl -lcrypto -otest_fips \
+  && make INSTALL_PREFIX=/tmp/root install_sw \
+  && cd ..
+  && gcc test_fips.c -I/tmp/root/usr/include -L/tmp/root/usr/lib -lssl -lcrypto -otest_fips \
   && chmod +x test_fips \
-  && ./test_fips \
   && rm -rf /tmp/build ~/.gnupg \
+  && LD_LIBRARY_PATH=/tmp/root/usr/lib ./test_fips \
   && apk del .build-deps
+
+FROM alpine:3.9
+COPY --from=build /tmp/root /
