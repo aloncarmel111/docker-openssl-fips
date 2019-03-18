@@ -10,39 +10,44 @@ ARG OPENSSL_PGP_FINGERPRINT=D9C4D26D0E604491
 
 ADD test_fips.c openssl-fips-${OPENSSL_FIPS_VER}.tar.gz /tmp/build/
 
-RUN apk update \
-    && apk add --update wget gcc gzip tar libc-dev ca-certificates perl make coreutils gnupg linux-headers zlib-dev openssl \
-    && wget --quiet https://www.openssl.org/source/openssl-fips-$OPENSSL_FIPS_VER.tar.gz \
-    && openssl sha1 -hmac etaonrishdlcupfm openssl-fips-$OPENSSL_FIPS_VER.tar.gz | grep $OPENSSL_FIPS_HMACSHA1 \
-    && apk del openssl \
-    && wget --quiet https://www.openssl.org/source/openssl-fips-$OPENSSL_FIPS_VER.tar.gz.asc \
-    && gpg --keyserver hkp://pgp.mit.edu --recv $OPENSSL_FIPS_PGP_FINGERPRINT \
-    && gpg --verify openssl-fips-$OPENSSL_FIPS_VER.tar.gz.asc openssl-fips-$OPENSSL_FIPS_VER.tar.gz \
-    && echo "$OPENSSL_FIPS_HASH openssl-fips-$OPENSSL_FIPS_VER.tar.gz" | sha256sum -c - | grep OK \
-    && tar -xzf openssl-fips-$OPENSSL_FIPS_VER.tar.gz \
-    && cd openssl-fips-$OPENSSL_FIPS_VER \
-    && ./config \
-    && make \
-    && make install \
-    && cd .. \
-    && wget --quiet https://www.openssl.org/source/openssl-$OPENSSL_VER.tar.gz \
-    && wget --quiet https://www.openssl.org/source/openssl-$OPENSSL_VER.tar.gz.asc \
-    && gpg --keyserver hkp://pgp.mit.edu --recv $OPENSSL_PGP_FINGERPRINT \
-    && gpg --verify openssl-$OPENSSL_VER.tar.gz.asc \
-    && echo "$OPENSSL_HASH openssl-$OPENSSL_VER.tar.gz" | sha256sum -c - | grep OK \
-    && tar -xzf openssl-$OPENSSL_VER.tar.gz \
-    && cd openssl-$OPENSSL_VER \
-    && perl ./Configure linux-x86_64 --prefix=/usr \
-                                     --libdir=lib \
-                                     --openssldir=/etc/ssl \
-                                     fips shared zlib enable-montasm enable-md2 enable-ec_nistp_64_gcc_128 \
-                                     -DOPENSSL_NO_BUF_FREELISTS \
-                                     -Wa,--noexecstack enable-ssl2 \
-    && make \
-    && make install_sw \
-    && cd .. \
-    && gcc test_fips.c -lssl -lcrypto -otest_fips \
-    && chmod +x test_fips \
-    && ./test_fips \
-    && rm -rf openssl* patches /var/cache/apk/* .gnupg/ ~/.ash_history .wget-hsts test_fips* \
-    && apk del wget gcc gzip tar libc-dev ca-certificates perl make coreutils gnupg linux-headers    
+RUN cd /tmp/build \
+  && wget --quiet https://www.openssl.org/source/openssl-$OPENSSL_VER.tar.gz \
+  && wget --quiet https://www.openssl.org/source/openssl-$OPENSSL_VER.tar.gz.asc \
+  && gpg --keyserver hkp://pgp.mit.edu --recv $OPENSSL_PGP_FINGERPRINT \
+  && gpg --verify openssl-$OPENSSL_VER.tar.gz.asc \
+  && tar -xzf openssl-$OPENSSL_VER.tar.gz \
+  && apk add --no-cache zlib \
+  && apk add --no-cache --virtual .build-deps \
+      wget \
+      gcc \
+      gzip \
+      tar \
+      libc-dev \
+      ca-certificates \
+      perl \
+      make \
+      coreutils \
+      gnupg \
+      linux-headers \
+      zlib-dev \
+  && cd openssl-fips-$OPENSSL_FIPS_VER \
+  && ./config \
+  && make \
+  && make install \
+  && cd .. \
+  && cd openssl-$OPENSSL_VER \
+  && perl ./Configure linux-x86_64 \
+    --prefix=/usr \
+    --libdir=lib \
+    --openssldir=/etc/ssl \
+    -DOPENSSL_NO_BUF_FREELISTS \
+    -Wa,--noexecstack \
+    fips shared zlib enable-ec_nistp_64_gcc_128 enable-ssl2 \
+  && make \
+  && make install_sw \
+  && cd .. \
+  && gcc test_fips.c -lssl -lcrypto -otest_fips \
+  && chmod +x test_fips \
+  && ./test_fips \
+  && rm -rf /tmp/build \
+  && apk del .build-deps
